@@ -1,0 +1,82 @@
+# $Id: $
+
+PortSystem      	1.0
+
+name            	neko
+version         	1.8.0-1
+description     	Neko Virtual Machine.
+long_description	Neko has a compiler and virtual machine. The Virtual Machine \
+					is both very lightweight and extremely well optimised so that \
+					it can run very quickly.
+					
+maintainers     	publicclass.se:robert \
+                	openmaintainer
+
+categories      	devel
+platforms       	darwin
+homepage        	http://nekovm.org
+use_zip         	yes
+master_sites    	http://github.com/slaskis/neko/zipball/
+distfiles       	8b2abdcd988c4d3d1587b0a24a7ffb73b29497de
+worksrcdir			slaskis-${name}-${distfiles}
+
+checksums    		sha1 c0f7284b6c3396c5f73cea0856aa6fa8d22f29b3
+
+depends_build		port:boehmgc-devel
+
+use_configure  		no
+
+patchfiles   		Makefile.diff
+
+#pre-build {
+#	file copy -force ${worksrcpath}/Makefile.osx ${worksrcpath}/Makefile
+#}
+
+build.target		universal
+build.args     		CFLAGS="-Wall -O3 -fPIC -fomit-frame-pointer -Ivm -I${prefix}/include -L${prefix}/lib" \
+               		CC=${configure.cc} \
+               		prefix=${prefix} \
+					silent=true
+
+test.run       		yes
+test.cmd       		make
+test.target    		test
+test.dir       		${worksrcpath}
+test.args      		prefix=${prefix}
+
+destroot.destdir  	DESTDIR=${destroot} prefix=${prefix}
+destroot.target   	install
+destroot.args     	prefix=${prefix}
+
+post-activate {
+	ui_msg "####################################################"
+	ui_msg " Neko is now installed, now you only need to add: "
+	ui_msg " NEKOPATH=${prefix}/lib/neko:${prefix}/bin "
+	ui_msg " to your environment (like .bash_profile). "
+	ui_msg "####################################################"
+}
+
+variant sqlite description {Sqlite3 support ndll} {
+	depends_build-append	port:sqlite3
+}	
+
+variant mysql5 description {MySQL 5 support ndll} {
+	depends_build-append	port:mysql5
+}
+
+variant regexp description {Regular Expression support ndll} {
+	depends_build-append	port:pcre
+}
+
+variant zlib description {zlib support ndll} {
+	depends_build-append	port:zlib
+}
+
+variant apache2 description {Apache 2 support ndlls mod_neko2 and mod_tora2} {
+	depends_build-append	port:apache2
+	# Should proably override the destroot and install the mod_neko2.so and mod_tora2.so to ${prefix}/apache2/modules and add them to the httpd.conf?
+	# Or to /usr/libexec/apache2 in case apache2 is already installed (which it generally is on leopard)
+} 
+
+
+default_variants    +sqlite +zlib +regexp

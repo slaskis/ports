@@ -1,0 +1,74 @@
+# $Id: $
+
+PortSystem			1.0
+
+name              	haxe
+version           	2.0.3
+description       	An open source programming language.
+long_description  	haXe (pronounced as hex) is an open source programming language.\
+				  	While most of the other languages are bound to their own platform, \
+				  	haXe is a multiplatform language.
+				
+maintainers       	publicclass.se:robert \
+                  	openmaintainer
+
+categories        	devel
+platforms         	darwin
+homepage          	http://haxe.org
+
+fetch.type			git
+git.url				git://github.com/slaskis/haxeport.git
+git.branch			master
+
+#use_zip			yes
+#master_sites      	http://github.com/slaskis/haxeport/zipball/ 
+#distfiles       	8823c9ae7d32350d7115332087a6a3b6af81c1fa
+#worksrcdir			slaskis-haxeport-${distfiles}
+#patchfiles   		Makefile.diff
+
+checksums    		sha1 8823c9ae7d32350d7115332087a6a3b6af81c1fa
+
+depends_build		port:ocaml port:git-core
+
+
+use_configure  		no
+
+
+pre-build {
+	ui_msg "Before building we fetch and update the submodules."
+	exec /bin/sh -c "cd ${workpath}/${worksrcdir} && git submodule init"
+	exec /bin/sh -c "cd ${workpath}/${worksrcdir} && git submodule update"
+	ui_msg "Done."
+	
+	ui_msg "Applying the Makefile patch now that we have the files."
+	exec /bin/sh -c "cd ${workpath}/${worksrcdir}/haxe && git apply --whitespace=nowarn '${filespath}/Makefile.diff'"
+	ui_msg "Done."
+}
+
+build.cmd			cd haxe && ${build.cmd}
+build.args     		prefix=${prefix}
+build.env			NEKOPATH=${prefix}/lib/neko
+
+destroot.target   	install
+destroot.args		DESTDIR=${destroot} prefix=${prefix}
+
+post-activate {
+	ui_msg "######################################################"
+	ui_msg "  haXe is now installed, now you only need to add:"
+	ui_msg "    HAXE_LIBRARY_PATH=${prefix}/lib/haxe/std:."
+	ui_msg "  to your environment (like in ~/.bash_profile)."
+	if {[variant_isset tools]} {
+		ui_msg "  "
+		ui_msg "  And since haxelib also is installed you should run: "
+		ui_msg "    haxelib setup ${prefix}/lib/haxe/lib"
+		ui_msg "  before using it."
+	}
+	ui_msg "######################################################"
+}
+
+variant tools description {Adds the haxelib and haxedoc tools.} {
+	depends_build-append	port:neko
+	build.target			tools
+}
+
+default_variants    +tools
