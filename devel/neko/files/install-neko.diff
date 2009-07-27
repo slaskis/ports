@@ -1,0 +1,32 @@
+--- src/tools/install.neko.orig	2009-07-27 11:30:29.000000000 +0200
++++ src/tools/install.neko	2009-07-27 11:58:04.000000000 +0200
+@@ -112,10 +112,12 @@
+ if( system == "Linux" ) cflags += " -pthread";
+ cc = getenv("CC");
+ if( cc == null ) cc = "gcc";
++silent = getenv("silent");
++if( silent == null ) silent = false;
+ linkcmd = switch system { "BSD" => "ld" default => cc };
+ linkneko = "-lneko";
+ linkoptions = switch system {
+-	"Mac" => "-bundle -undefined dynamic_lookup -L../../bin"
++	"Mac" => "-bundle -undefined dynamic_lookup -L../../bin -L../../lib"
+ 	default => "-shared -L../../bin -pthread"
+ };
+ nekovm = switch system { "Windows" => "..\\bin\\neko" default => "../bin/neko" };
+@@ -226,6 +228,7 @@
+ }
+ 
+ request_include = function(incl) {
++	if( silent == "true" ) return null;
+ 	var s = readline();
+ 	if( s == "s" )
+ 		return null;
+@@ -233,6 +236,7 @@
+ }
+ 
+ request_lib = function() {
++	if( silent == "true" ) return false;
+ 	var s = readline();
+ 	if( s == "s" )
+ 		return false;

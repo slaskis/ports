@@ -3,7 +3,7 @@
 PortSystem      	1.0
 
 name            	neko
-version         	1.8.0-1
+version         	1.8.1
 description     	Neko Virtual Machine.
 long_description	Neko has a compiler and virtual machine. The Virtual Machine \
 					is both very lightweight and extremely well optimised so that \
@@ -17,20 +17,17 @@ platforms       	darwin
 homepage        	http://nekovm.org
 use_zip         	yes
 master_sites    	http://github.com/slaskis/neko/zipball/
-distfiles       	8b2abdcd988c4d3d1587b0a24a7ffb73b29497de
-worksrcdir			slaskis-${name}-${distfiles}
+distfiles       	v1-8-1
+worksrcdir			slaskis-${name}-d3b84e99705ddb6806f7093e902b84f0242f52ba
 
-checksums    		sha1 c0f7284b6c3396c5f73cea0856aa6fa8d22f29b3
+checksums    		sha1 de4e53d032fb822e341fcf5611bf26089464a53e
 
 depends_build		port:boehmgc-devel
 
 use_configure  		no
 
-patchfiles   		Makefile.diff
-
-#pre-build {
-#	file copy -force ${worksrcpath}/Makefile.osx ${worksrcpath}/Makefile
-#}
+patchfiles   		Makefile.diff \
+					install-neko.diff
 
 build.target		universal
 build.args     		CFLAGS="-Wall -O3 -fPIC -fomit-frame-pointer -Ivm -I${prefix}/include -L${prefix}/lib" \
@@ -51,8 +48,8 @@ destroot.args     	prefix=${prefix}
 post-activate {
 	ui_msg "####################################################"
 	ui_msg " Neko is now installed, now you only need to add: "
-	ui_msg " NEKOPATH=${prefix}/lib/neko:${prefix}/bin "
-	ui_msg " to your environment (like .bash_profile). "
+	ui_msg "   NEKOPATH=${prefix}/lib/neko:${prefix}/bin:. "
+	ui_msg " to your environment (ex. .bash_profile). "
 	ui_msg "####################################################"
 }
 

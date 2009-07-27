@@ -1,13 +1,13 @@
---- Makefile	2009-07-02 12:11:49.000000000 +0200
-+++ Makefile.osx	2009-07-02 15:33:23.000000000 +0200
-@@ -1,99 +1,60 @@
+--- Makefile	2009-07-26 18:30:47.000000000 +0200
++++ /Users/slaskis/Work/haXe/neko.old/Makefile.osx	2009-07-27 12:03:13.000000000 +0200
+@@ -1,99 +1,61 @@
 -## CONFIG
 +prefix ?= /usr/local
 +DESTDIR ?= 
  
 -INSTALL_PREFIX = /usr/local
 -
--CFLAGS = -Wall -O3 -v -fPIC -fomit-frame-pointer -I vm -D_GNU_SOURCE
+-CFLAGS = -Wall -O3 -fPIC -fomit-frame-pointer -I vm -D_GNU_SOURCE
 -EXTFLAGS = -pthread
 -MAKESO = $(CC) -shared -WBsymbolic
 -LIBNEKO_NAME = libneko.so
@@ -42,7 +42,7 @@
 -# For MINGW/MSYS
 -
 -ifeq (${WIN32}, 1)
--CFLAGS = -g -Wall -v -O3 -momit-leaf-frame-pointer -I vm -I /usr/local/include
+-CFLAGS = -g -Wall -O3 -momit-leaf-frame-pointer -I vm -I /usr/local/include
 +CFLAGS ?= -Wall -O3 -v -fPIC -fomit-frame-pointer -Ivm -I${prefix}/include -L${prefix}/lib
  EXTFLAGS =
 -MAKESO = $(CC) -O -shared
@@ -64,9 +64,11 @@
 -EXTFLAGS =
 -MAKESO = ${CC}
  LIBNEKO_NAME = libneko.dylib
- LIBNEKO_INSTALL = -install_name @executable_path/${LIBNEKO_NAME}
+-LIBNEKO_INSTALL = -install_name @executable_path/${LIBNEKO_NAME}
++LIBNEKO_INSTALL = -install_name @executable_path/../lib/${LIBNEKO_NAME}
  LIBNEKO_LIBS = -ldl -lgc -lm -dynamiclib -single_module ${LIBNEKO_INSTALL}
- NEKOVM_FLAGS = -L${PWD}/bin -lneko
+-NEKOVM_FLAGS = -L${PWD}/bin -lneko
++NEKOVM_FLAGS = -L${PWD}/lib -L${PWD}/bin -lneko
  STD_NDLL_FLAGS = -bundle -undefined dynamic_lookup ${NEKOVM_FLAGS}
 +NEKO_EXEC = LD_LIBRARY_PATH=../bin:${LD_LIBRARY_PATH} NEKOPATH=../boot:../bin ../bin/neko
  
@@ -118,8 +120,9 @@
  
  createbin:
  	-mkdir bin 2>/dev/null
- 
- libneko: bin/${LIBNEKO_NAME}
++	-mkdir lib 2>/dev/null
++
++libneko: lib/${LIBNEKO_NAME}
 +	
 +neko: bin/neko
 +
@@ -129,21 +132,29 @@
 +	(cd src; ${NEKO_EXEC} nekoml -nostd neko/Main.nml nekoml/Main.nml)
 +	(cd src; ${NEKO_EXEC} nekoc -link ../boot/nekoc.n neko/Main)
 +	(cd src; ${NEKO_EXEC} nekoc -link ../boot/nekoml.n nekoml/Main)
-+
+ 
+-libneko: bin/${LIBNEKO_NAME}
  
  libs:
  	(cd src; ${NEKO_EXEC} nekoc tools/install.neko)
-@@ -106,45 +67,45 @@
+@@ -106,45 +68,39 @@
  test:
  	(cd src; ${NEKO_EXEC} nekoc tools/test.neko)
  	(cd src; ${NEKO_EXEC} tools/test)
 +		
 +clean:
-+	rm -rf bin/${LIBNEKO_NAME} ${LIBNEKO_OBJECTS} ${VM_OBJECTS}
-+	rm -rf bin/neko bin/nekoc bin/nekoml bin/nekotools bin/libneko.dylib bin/nekoml.std 
++	rm -rf lib/${LIBNEKO_NAME} ${LIBNEKO_OBJECTS} ${VM_OBJECTS}
++	rm -rf bin/neko bin/nekoc bin/nekoml bin/nekotools bin/nekoml.std 
 +	rm -rf bin/std bin/*.ndll bin/*.n libs/*/*.o
 +	rm -rf src/*.n src/neko/*.n src/nekoml/*.n src/tools/*.n
 +	rm -rf bin/mtypes bin/tools
++	
++install: 
++	-mkdir ${DESTDIR}${prefix}/lib/neko
++	cp bin/*.ndll ${DESTDIR}${prefix}/lib/neko
++	cp lib/${LIBNEKO_NAME} ${DESTDIR}${prefix}/lib
++	cp bin/neko bin/nekoc bin/nekotools bin/nekoml bin/nekoml.std ${DESTDIR}${prefix}/bin
++	cp vm/neko*.h ${DESTDIR}${prefix}/include
  
 -neko: bin/neko
 -
@@ -153,28 +164,16 @@
 -	(cd src; ${NEKO_EXEC} nekoml -nostd neko/Main.nml nekoml/Main.nml)
 -	(cd src; ${NEKO_EXEC} nekoc -link ../boot/nekoc.n neko/Main)
 -	(cd src; ${NEKO_EXEC} nekoc -link ../boot/nekoml.n nekoml/Main)
-+install:
-+	-mkdir ${DESTDIR}${prefix}/lib/neko
-+	cp bin/* ${DESTDIR}${prefix}/lib/neko
-+	cp vm/neko*.h ${DESTDIR}${prefix}/include
-+	ln -s ../lib/neko/neko ${DESTDIR}${prefix}/bin/neko
-+	ln -s ../lib/neko/nekotools ${DESTDIR}${prefix}/bin/nekotools
-+	ln -s ../lib/neko/nekoml ${DESTDIR}${prefix}/bin/nekoml
-+	ln -s ../lib/neko/nekoml.std ${DESTDIR}${prefix}/bin/nekoml.std
-+	ln -s ../lib/neko/nekoc ${DESTDIR}${prefix}/bin/nekoc
-+	ln -s ../lib/neko/${LIBNEKO_NAME} ${DESTDIR}${prefix}/bin/${LIBNEKO_NAME}
-+	ln -s ../lib/neko/${LIBNEKO_NAME} ${DESTDIR}${prefix}/lib/${LIBNEKO_NAME}
-+
-+
-+uninstall:	
-+	rm -rf ${DESTDIR}${prefix}/bin/neko ${DESTDIR}${prefix}/bin/nekoc ${DESTDIR}${prefix}/bin/nekotools ${DESTDIR}${prefix}/bin/nekoml ${DESTDIR}${prefix}/bin/nekoml.std ${DESTDIR}${prefix}/bin/${LIBNEKO_NAME}
++uninstall:
 +	rm -rf ${DESTDIR}${prefix}/lib/${LIBNEKO_NAME} ${DESTDIR}${prefix}/lib/neko
++	rm -rf ${DESTDIR}${prefix}/bin/neko ${DESTDIR}${prefix}/bin/nekoc ${DESTDIR}${prefix}/bin/nekotools ${DESTDIR}${prefix}/bin/nekoml ${DESTDIR}${prefix}/bin/nekoml.std
 +	rm -rf ${DESTDIR}${prefix}/include/neko*.h
 +	
 +### SUBTARGETS
  
- bin/${LIBNEKO_NAME}: ${LIBNEKO_OBJECTS}
+-bin/${LIBNEKO_NAME}: ${LIBNEKO_OBJECTS}
 -	${MAKESO} ${EXTFLAGS} -o $@ ${LIBNEKO_OBJECTS} ${LIBNEKO_LIBS}
++lib/${LIBNEKO_NAME}: ${LIBNEKO_OBJECTS}
 +	${CC} ${EXTFLAGS} -o $@ ${LIBNEKO_OBJECTS} ${LIBNEKO_LIBS}
  
  bin/neko: $(VM_OBJECTS)
