@@ -1,6 +1,6 @@
 --- haxe/Makefile	2009-07-27 09:34:19.000000000 +0200
-+++ ../haxe.old/Makefile	2009-07-28 01:43:16.000000000 +0200
-@@ -1,45 +1,65 @@
++++ ../haxe.old/Makefile	2009-07-31 01:14:07.000000000 +0200
+@@ -1,45 +1,68 @@
 -EXTLIB=../../mtcvs/extlib-dev
 -SWFLIB=../../mtcvs/swflib
 -EXTC=../../mtcvs/extc
@@ -74,14 +74,17 @@
 +	(cd std && ../bin/haxe tools/haxedoc/haxedoc.hxml && mv haxedoc ../bin)
 +	(cd std && ../bin/haxe tools/haxelib/haxelib.hxml && mv haxelib ../bin)
 +	
-+install:
++install: 
 +	-mkdir ${DESTDIR}${prefix}/bin
 +	cp bin/haxe* ${DESTDIR}${prefix}/bin
++	-mkdir ${DESTDIR}${prefix}/lib/haxe
++	cp -Rf std ${DESTDIR}${prefix}/lib/haxe/
 +	
 +uninstall:
 +	rm -Rf ${DESTDIR}${prefix}/bin/haxedoc
 +	rm -Rf ${DESTDIR}${prefix}/bin/haxelib
 +	rm -Rf ${DESTDIR}${prefix}/bin/haxe
++	rm -Rf ${DESTDIR}${prefix}/lib/haxe
  
 -clean:
 -	ocamake $(FLAGS) -clean $(LIBS_SRC) $(SRC) $(LIBS)
