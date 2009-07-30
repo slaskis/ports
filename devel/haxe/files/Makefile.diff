@@ -1,8 +1,6 @@
-diff --git a/Makefile b/Makefile
-index 07726ab..5c95645 100644
---- a/Makefile
-+++ b/Makefile
-@@ -1,45 +1,73 @@
+--- haxe/Makefile	2009-07-27 09:34:19.000000000 +0200
++++ ../haxe.old/Makefile	2009-07-28 01:43:16.000000000 +0200
+@@ -1,45 +1,65 @@
 -EXTLIB=../../mtcvs/extlib-dev
 -SWFLIB=../../mtcvs/swflib
 -EXTC=../../mtcvs/extc
@@ -22,33 +20,38 @@ index 07726ab..5c95645 100644
 +FLAGS=-o bin/haxe -pp camlp4o -P $(XML)/dtd.mli -lp "-cclib extc_stubs.o -cclib -lz"
  LFLAGS=
  
-+
  ifeq ($(PPC),1)
  LFLAGS=-ccopt '-arch ppc'
  endif
  
 -all: xml
--	ocamlopt $(LFLAGS) -c $(EXTC)/extc_stubs.c
++all: xml ocamake
+ 	ocamlopt $(LFLAGS) -c $(EXTC)/extc_stubs.c
 -	ocamake -lp "$(LFLAGS)" $(FLAGS) $(LIBS_SRC) $(SRC) $(LIBS)
-+all: bin/haxe
++	${OMAKE} -lp "$(LFLAGS)" $(FLAGS) $(LIBS_SRC) $(SRC) $(LIBS)
  
  xml:
  	(cd ${XML} && make clean xml-light.cmxa)
-+	
-+mkdirs:
-+	-mkdir bin
-+	-mkdir lib
- 
+-
 -mode_ppc:
 -	sudo ln -sfh /usr/local/bin/ocamlopt.ppc /usr/local/bin/ocamlopt
 -	sudo ln -sfh /usr/local/lib/ocaml_ppc /usr/local/lib/ocaml
-+mode_ppc: mkdirs
-+	sudo ln -sfh bin/ocamlopt.ppc bin/ocamlopt
-+	sudo ln -sfh lib/ocaml_ppc lib/ocaml
- 
+-
 -mode_intel:
 -	sudo ln -sfh /usr/local/bin/ocamlopt.intel /usr/local/bin/ocamlopt
 -	sudo ln -sfh /usr/local/lib/ocaml_intel /usr/local/lib/ocaml
++	
++ocamake: mkdirs
++	ocamlc unix.cma str.cma ../ocaml/ocamake/ocamake.ml -o ${OMAKE}
++
++mkdirs:
++	-mkdir bin
++	-mkdir lib
++
++mode_ppc: mkdirs
++	sudo ln -sfh bin/ocamlopt.ppc bin/ocamlopt
++	sudo ln -sfh lib/ocaml_ppc lib/ocaml
++
 +mode_intel: mkdirs
 +	sudo ln -sfh bin/ocamlopt.intel bin/ocamlopt
 +	sudo ln -sfh lib/ocaml_intel lib/ocaml
@@ -67,34 +70,22 @@ index 07726ab..5c95645 100644
 -tools:
 -	(cd std/tools/haxedoc && haxe haxedoc.hxml && cp haxedoc ../../..)
 -	(cd std/tools/haxelib && haxe haxelib.hxml && cp haxelib ../../..)
-+tools: bin/haxe
++tools: all
 +	(cd std && ../bin/haxe tools/haxedoc/haxedoc.hxml && mv haxedoc ../bin)
 +	(cd std && ../bin/haxe tools/haxelib/haxelib.hxml && mv haxelib ../bin)
 +	
 +install:
 +	-mkdir ${DESTDIR}${prefix}/bin
 +	cp bin/haxe* ${DESTDIR}${prefix}/bin
-+	-mkdir ${DESTDIR}${prefix}/lib/haxe
-+	cp -R std ${DESTDIR}${prefix}/lib/haxe
-+	-mkdir ${DESTDIR}${prefix}/lib/haxe/lib
-+	chmod 777 ${DESTDIR}${prefix}/lib/haxe/lib
 +	
 +uninstall:
 +	rm -Rf ${DESTDIR}${prefix}/bin/haxedoc
 +	rm -Rf ${DESTDIR}${prefix}/bin/haxelib
 +	rm -Rf ${DESTDIR}${prefix}/bin/haxe
-+	rm -Rf ${DESTDIR}${prefix}/lib/haxe
  
 -clean:
 -	ocamake $(FLAGS) -clean $(LIBS_SRC) $(SRC) $(LIBS)
-+clean: bin/ocamake
++clean: ocamake
 +	${OMAKE} $(FLAGS) -clean $(LIBS_SRC) $(SRC) $(LIBS)
  	rm -rf extc_stubs.o
 +	rm -rf lib bin *.n
-+	
-+bin/ocamake: mkdirs
-+	ocamlc unix.cma str.cma ../ocaml/ocamake/ocamake.ml -o ${OMAKE}
-+	
-+bin/haxe: xml bin/ocamake
-+	ocamlopt $(LFLAGS) -c $(EXTC)/extc_stubs.c
-+	${OMAKE} -lp "$(LFLAGS)" $(FLAGS) $(LIBS_SRC) $(SRC) $(LIBS)

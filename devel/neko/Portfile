@@ -71,7 +71,7 @@ variant zlib description {zlib support ndll} {
 
 variant apache2 description {Apache 2 support ndlls mod_neko2 and mod_tora2} {
 	depends_build-append	port:apache2
-	# Should proably override the destroot and install the mod_neko2.so and mod_tora2.so to ${prefix}/apache2/modules and add them to the httpd.conf?
+	# Should probably append the destroot and install the mod_neko2.so and mod_tora2.so to ${prefix}/apache2/modules and add them to the httpd.conf?
 	# Or to /usr/libexec/apache2 in case apache2 is already installed (which it generally is on leopard)
 } 
 
