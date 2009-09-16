@@ -6,7 +6,7 @@ name            	neko
 version         	1.8.1
 description     	Neko Virtual Machine.
 long_description	Neko has a compiler and virtual machine. The Virtual Machine \
-					is both very lightweight and extremely well optimised so that \
+					is both very lightweight and extremely well optimized so that \
 					it can run very quickly.
 					
 maintainers     	publicclass.se:robert \
@@ -18,32 +18,36 @@ homepage        	http://nekovm.org
 use_zip         	yes
 master_sites    	http://github.com/slaskis/neko/zipball/
 distfiles       	v1-8-1
+#master
+
 worksrcdir			slaskis-${name}-d3b84e99705ddb6806f7093e902b84f0242f52ba
+#slaskis-${name}-7c0cd829f7d7a7c9cedcc4e42837050aa4260f7d
 
 checksums    		sha1 de4e53d032fb822e341fcf5611bf26089464a53e
+#sha1 7fcd8dc157f0ebb2384b7062074049fbde13df7d
 
 depends_build		port:boehmgc-devel
 
 use_configure  		no
+configure.cflags	-Wall -O3 -v -fPIC -fomit-frame-pointer -Ivm -I${prefix}/include -L${prefix}/lib
 
-patchfiles   		Makefile.diff \
-					install-neko.diff
+patchfiles   		install-neko.diff
 
-build.target		universal
-build.args     		CFLAGS="-Wall -O3 -fPIC -fomit-frame-pointer -Ivm -I${prefix}/include -L${prefix}/lib" \
-               		CC=${configure.cc} \
-               		prefix=${prefix} \
+use_parallel_build	no
+build.args     		CFLAGS="${configure.cflags} ${configure.cc_archflags}" \
+					LIBNEKO_NAME=libneko.dylib \
+					NEKO_EXEC="LD_LIBRARY_PATH=../bin DYLD_LIBRARY_PATH=../bin NEKOPATH=../boot:../bin ../bin/neko" \
+					LIBNEKO_LIBS="-ldl -lgc -lm -dynamiclib -single_module -install_name ${prefix}/lib/libneko.dylib ${configure.cflags}" \
+					CC=${configure.cc} \
 					silent=true
 
 test.run       		yes
 test.cmd       		make
 test.target    		test
 test.dir       		${worksrcpath}
-test.args      		prefix=${prefix}
 
-destroot.destdir  	DESTDIR=${destroot} prefix=${prefix}
-destroot.target   	install
-destroot.args     	prefix=${prefix}
+destroot.destdir  	INSTALL_PREFIX=${destroot}${prefix} 
+destroot.args		LIBNEKO_NAME=libneko.dylib 
 
 post-activate {
 	ui_msg "####################################################"
@@ -53,19 +57,19 @@ post-activate {
 	ui_msg "####################################################"
 }
 
-variant sqlite description {Sqlite3 support ndll} {
+variant sqlite description {Add sqlite 3 support ndll} {
 	depends_build-append	port:sqlite3
 }	
 
-variant mysql5 description {MySQL 5 support ndll} {
+variant mysql5 description {Add MySQL 5 support ndll} {
 	depends_build-append	port:mysql5
 }
 
-variant regexp description {Regular Expression support ndll} {
+variant regexp description {Add Regular Expression support ndll} {
 	depends_build-append	port:pcre
 }
 
-variant zlib description {zlib support ndll} {
+variant zlib description {Add zlib support ndll} {
 	depends_build-append	port:zlib
 }
 
@@ -75,5 +79,8 @@ variant apache2 description {Apache 2 support ndlls mod_neko2 and mod_tora2} {
 	# Or to /usr/libexec/apache2 in case apache2 is already installed (which it generally is on leopard)
 } 
 
+platform darwin 10 {
+	configure.cc_archflags	-arch x86_64
+}
 
 default_variants    +sqlite +zlib +regexp

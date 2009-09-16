@@ -38,6 +38,7 @@ post-activate {
 	ui_msg "    HAXE_LIBRARY_PATH=${prefix}/lib/haxe/std:."
 	ui_msg "  to your environment (like in ~/.bash_profile)."
 	if {[variant_isset tools]} {
+		xinstall -d -m 777 ${prefix}/lib/haxe/lib
 		ui_msg "  "
 		ui_msg "  And since haxelib also is installed you should run: "
 		ui_msg "    haxelib setup ${prefix}/lib/haxe/lib"
